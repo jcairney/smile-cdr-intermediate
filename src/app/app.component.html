@@ -1,0 +1,143 @@
+<style>
+  ::ng-deep html,::ng-deep body {
+    height: 100%;
+  }
+
+  :host {
+    background-color: #ddd;
+    display:block;
+    height:100%;
+    overflow-y:auto;
+    width:100%;
+    font-family: system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Liberation Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+  }
+
+  #navbar, #footer {
+    height: 60px;
+    background-color: #6688AA;
+  }
+
+  #content {
+    background-color: #fff;
+    width: 60%;
+    padding: 20px;
+    min-height: calc(100% - 60px - 60px);
+    overflow-y: auto;
+    height: auto !important;
+    height: 100%;
+    margin: 0 auto;
+  }
+
+  h1{
+    margin: 20px;
+  }
+
+  ol li {
+    font-weight: bold;
+  }
+
+  .answer {
+    font-weight: normal;
+    margin-top: 8px;
+    margin-bottom: 20px;
+  }
+
+  .radio {
+    margin-right: 20px;
+  }
+
+  .button-bar {
+    margin-top:20px;
+  }
+
+  button {
+    font-weight: bold;
+    border-width: 1px;
+    border-radius: 3px;
+    padding: 5px 10px;
+    margin: 0px 2px;
+  }
+
+  button[disabled] {
+    opacity: 0.3;
+  }
+
+  button[type=submit] {
+    background-color: #224466;
+    border-color: #002244;
+    color: #fff;
+  }
+
+  button[type=reset] {
+    background-color: #fff;
+    border: 1px solid black;
+  }
+
+  .result {
+    margin-top:20px;
+  }
+
+  .formatted {
+    font-family:  "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
+    border: 1px solid #444;
+    margin: 10px auto 0;
+    box-shadow: 5px 5px #ddd;
+    padding: 5px;
+  }
+
+  .error {
+    border-color: red;
+  }
+
+</style>
+<div id="navbar"></div>
+<div id="content">
+  <h1 i18n>Questions</h1>
+  <form [formGroup]="formGroup" novalidate class="form" (ngSubmit)="submit()">
+    <ol>
+      <ng-container *ngFor="let item of questionnaire?.item; let i = index">
+      <li>{{item.text}}
+        <div class="answer" [ngSwitch]="item.type">
+            <ng-container *ngSwitchCase="QuestionnaireItemType.Boolean">
+              <span class="radio">
+                <input type="radio" [name]="item.linkId" [formControlName]="item.linkId" [value]="true"
+                       [ngClass]="{'error':formGroup.get(item.linkId)?.errors && formGroup.get(item.linkId)?.touched}" i18n>&nbsp;Yes
+              </span>
+              <span class="radio">
+                <input type="radio" [name]="item.linkId" [formControlName]="item.linkId" [value]="false"
+                       [ngClass]="{'error':formGroup.get(item.linkId)?.errors && formGroup.get(item.linkId)?.touched}" i18n>&nbsp;No
+              </span>
+            </ng-container>
+            <ng-container *ngSwitchCase="QuestionnaireItemType.String">
+              <!-- We have no idea what the content of these questions will be, so we can't assume a maximum length. -->
+              <!-- TODO: Set maxlength attribute from appropriate field in the Standard, where instances supply it.  Sample data did not contain this field. -->
+              <input type="text" [formControlName]="item.linkId" [ngClass]="{'error':!!formGroup.get(item.linkId)?.errors && formGroup.get(item.linkId)?.touched}">
+            </ng-container>
+            <ng-container *ngSwitchCase="QuestionnaireItemType.Date">
+              <!-- For the purpose of this exercise, we are relying on the browser to provide the calendar control.  Works in Chrome, Firefox, and Edge(Chromium) -->
+              <!-- The field will format based on the browser's locale, but data will always be read from it in ISO standard YYYY-MM-DD format. -->
+              <input type="date" [formControlName]="item.linkId" [ngClass]="{'error':!!formGroup.get(item.linkId)?.errors && formGroup.get(item.linkId)?.touched}">
+            </ng-container>
+            <ng-container *ngSwitchCase="QuestionnaireItemType.Choice">
+              <select [formControlName]="item.linkId" [ngClass]="{'error':formGroup.get(item.linkId)?.errors && formGroup.get(item.linkId)?.touched}">
+                <option ngValue="null" disabled selected i18n>Choose one...</option>
+                <option *ngFor="let option of item.option; let j = index" [ngValue]="option.valueCoding.code">{{option.valueCoding.display}}</option>
+              </select>
+            </ng-container>
+          </div>
+      </li>
+
+      </ng-container>
+    </ol>
+    <div class="button-bar">
+      <button type="reset">Reset</button>
+      <button type="submit" [disabled]='formGroup.invalid'>Submit</button>
+    </div>
+    <div *ngIf="questionnaireResponse" class="result">
+      <h5 i18n>QuestionnaireResponse JSON:</h5>
+      <pre class="formatted"><code>{{questionnaireResponse | json}}</code></pre>
+    </div>
+  </form>
+</div>
+<div id="footer"></div>
+
